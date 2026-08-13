@@ -1,0 +1,503 @@
+<html><body><meta charset="utf-8"><p></p><div align="left">
+ <span style="font-size:20">&nbsp;📡&nbsp;Talkie&nbsp;Communications</span>
+</div><div align="left">
+ <span style="font-size:20">&nbsp;local</span><span style="font-size:16">🔍&nbsp;Go🗑️&nbsp;Clear&nbsp;all</span>
+</div><div align="left">
+ <span style="font-size:20">📋&nbsp;Talkie&nbsp;signs0</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;Click&nbsp;anywhere&nbsp;on&nbsp;the&nbsp;map&nbsp;to&nbsp;place&nbsp;a&nbsp;Talkie&nbsp;yard&nbsp;sign.&nbsp;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;Use&nbsp;popup&nbsp;to&nbsp;delete&nbsp;or&nbsp;click&nbsp;the&nbsp;trash&nbsp;icon&nbsp;in&nbsp;the&nbsp;list.</span>
+</div><div align="left">
+ <b><span style="font-size:16">📍&nbsp;Click&nbsp;map&nbsp;→&nbsp;add&nbsp;sign</span></b><span style="font-size:16">&nbsp;</span>
+</div><div align="left">
+ <span style="font-size:16">No&nbsp;signs&nbsp;placed&nbsp;yet.</span>
+</div><div align="left">
+ <span style="font-size:16">Click&nbsp;the&nbsp;map&nbsp;to&nbsp;add&nbsp;one.</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;(function()&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;//&nbsp;----------&nbsp;Leaflet&nbsp;Map&nbsp;----------</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;map&nbsp;=&nbsp;L.map('map').setView([40.7128,&nbsp;-74.0060],&nbsp;13);</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;attribution:&nbsp;'&amp;copy;&nbsp;&lt;a&nbsp;href="https://www.openstreetmap.org/copyright"&gt;OSM&lt;/a&gt;'</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}).addTo(map);</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;//&nbsp;----------&nbsp;Add&nbsp;Geocoder&nbsp;(address&nbsp;search)&nbsp;----------</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;geocoder&nbsp;=&nbsp;L.Control.geocoder({</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;defaultMarkGeocode:&nbsp;false,</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;position:&nbsp;'topleft',</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;placeholder:&nbsp;'Search&nbsp;address...',</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;errorMessage:&nbsp;'Address&nbsp;not&nbsp;found'</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;})</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;.on('markgeocode',&nbsp;function(e)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;bbox&nbsp;=&nbsp;e.geocode.bbox;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;center&nbsp;=&nbsp;e.geocode.center;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(bbox)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;map.fitBounds(bbox);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}&nbsp;else&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;map.setView(center,&nbsp;16);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;//&nbsp;Add&nbsp;a&nbsp;temporary&nbsp;marker&nbsp;to&nbsp;show&nbsp;the&nbsp;found&nbsp;location</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;L.marker(center,&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;icon:&nbsp;L.divIcon({</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;className:&nbsp;'search-result-marker',</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;html:&nbsp;'📍',</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;iconSize:&nbsp;[30,&nbsp;30],</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;iconAnchor:&nbsp;[15,&nbsp;30]</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;})</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;})</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;.addTo(map)</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;.bindPopup(`&lt;strong&gt;📍&nbsp;${e.geocode.name}&lt;/strong&gt;`)</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;.openPopup();</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;})</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;.addTo(map);</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;//&nbsp;----------&nbsp;Custom&nbsp;address&nbsp;search&nbsp;with&nbsp;button&nbsp;----------</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;addressInput&nbsp;=&nbsp;document.getElementById('addressInput');</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;searchBtn&nbsp;=&nbsp;document.getElementById('searchBtn');</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;function&nbsp;performAddressSearch()&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;query&nbsp;=&nbsp;addressInput.value.trim();</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(!query)&nbsp;return;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;geocoder.geocode(query,&nbsp;function(results)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(results&nbsp;&amp;&amp;&nbsp;results.length&nbsp;&gt;&nbsp;0)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;result&nbsp;=&nbsp;results[0];</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;bbox&nbsp;=&nbsp;result.bbox;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;center&nbsp;=&nbsp;result.center;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(bbox)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;map.fitBounds(bbox);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}&nbsp;else&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;map.setView(center,&nbsp;16);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;L.marker(center,&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;icon:&nbsp;L.divIcon({</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;className:&nbsp;'search-result-marker',</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;html:&nbsp;'📍',</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;iconSize:&nbsp;[30,&nbsp;30],</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;iconAnchor:&nbsp;[15,&nbsp;30]</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;})</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;})</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;.addTo(map)</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;.bindPopup(`&lt;strong&gt;📍&nbsp;${result.name}&lt;/strong&gt;`)</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;.openPopup();</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}&nbsp;else&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;alert('Address&nbsp;not&nbsp;found.&nbsp;Please&nbsp;try&nbsp;a&nbsp;different&nbsp;search&nbsp;term.');</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;});</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;searchBtn.addEventListener('click',&nbsp;performAddressSearch);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;addressInput.addEventListener('keypress',&nbsp;function(e)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(e.key&nbsp;===&nbsp;'Enter')&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;performAddressSearch();</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;});</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;//&nbsp;----------&nbsp;State&nbsp;----------</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;let&nbsp;signs&nbsp;=&nbsp;[];</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;let&nbsp;markers&nbsp;=&nbsp;new&nbsp;Map();</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;let&nbsp;nextId&nbsp;=&nbsp;1;</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;//&nbsp;----------&nbsp;DOM&nbsp;refs&nbsp;----------</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;signListEl&nbsp;=&nbsp;document.getElementById('signList');</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;signCountEl&nbsp;=&nbsp;document.getElementById('signCount');</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;clearAllBtn&nbsp;=&nbsp;document.getElementById('clearAllBtn');</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;//&nbsp;----------&nbsp;Helpers&nbsp;----------</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;function&nbsp;generateLabel(lat,&nbsp;lng)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;return&nbsp;`Talkie&nbsp;#${nextId}`;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;function&nbsp;renderList()&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(signs.length&nbsp;===&nbsp;0)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;signListEl.innerHTML&nbsp;=&nbsp;`&lt;div&nbsp;class="empty-state"&gt;No&nbsp;signs&nbsp;placed&nbsp;yet.&lt;br&nbsp;/&gt;Click&nbsp;the&nbsp;map&nbsp;to&nbsp;add&nbsp;one.&lt;/div&gt;`;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;signCountEl.textContent&nbsp;=&nbsp;'0';</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;return;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;let&nbsp;html&nbsp;=&nbsp;'';</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;signs.forEach(s&nbsp;=&gt;&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;coords&nbsp;=&nbsp;`${s.lat.toFixed(5)},&nbsp;${s.lng.toFixed(5)}`;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;html&nbsp;+=&nbsp;`</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;div&nbsp;class="sign-item"&nbsp;data-id="${s.id}"&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;div&nbsp;class="sign-info"&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;span&nbsp;class="sign-label"&gt;${s.label&nbsp;||&nbsp;'Talkie&nbsp;Sign'}&lt;/span&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;span&nbsp;class="sign-coords"&gt;📍&nbsp;${coords}&lt;/span&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;/div&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;div&nbsp;class="sign-actions"&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;button&nbsp;class="icon-btn&nbsp;delete"&nbsp;data-id="${s.id}"&nbsp;title="Remove&nbsp;sign"&gt;✕&lt;/button&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;/div&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;/div&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;`;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;});</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;signListEl.innerHTML&nbsp;=&nbsp;html;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;signCountEl.textContent&nbsp;=&nbsp;signs.length;</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;document.querySelectorAll('.sign-item&nbsp;.delete').forEach(btn&nbsp;=&gt;&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;btn.addEventListener('click',&nbsp;(e)&nbsp;=&gt;&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;e.stopPropagation();</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;id&nbsp;=&nbsp;Number(btn.getAttribute('data-id'));</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;deleteSignById(id);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;});</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;});</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;//&nbsp;----------&nbsp;CRUD&nbsp;----------</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;function&nbsp;addSign(lat,&nbsp;lng,&nbsp;label)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;id&nbsp;=&nbsp;nextId++;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;newSign&nbsp;=&nbsp;{&nbsp;id,&nbsp;lat,&nbsp;lng,&nbsp;label:&nbsp;label&nbsp;||&nbsp;generateLabel(lat,&nbsp;lng)&nbsp;};</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;signs.push(newSign);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;addMarker(newSign);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;renderList();</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;saveToLocal();</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;return&nbsp;newSign;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;//&nbsp;----------&nbsp;Yard&nbsp;Sign&nbsp;Marker&nbsp;----------</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;function&nbsp;createYardSignIcon(label)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;displayLabel&nbsp;=&nbsp;label.length&nbsp;&gt;&nbsp;12&nbsp;?&nbsp;label.slice(0,&nbsp;10)&nbsp;+&nbsp;'…'&nbsp;:&nbsp;label;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;html&nbsp;=&nbsp;`</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;div&nbsp;class="yard-sign-marker"&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;div&nbsp;class="sign-board"&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;span&nbsp;class="sign-label-text"&gt;${displayLabel}&lt;/span&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;span&nbsp;class="talkie-tag"&gt;📡&lt;/span&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;/div&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;div&nbsp;class="sign-stake"&gt;&lt;/div&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;/div&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;`;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;return&nbsp;L.divIcon({</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;className:&nbsp;'',</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;html:&nbsp;html,</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;iconSize:&nbsp;[60,&nbsp;48],</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;iconAnchor:&nbsp;[30,&nbsp;48],</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;popupAnchor:&nbsp;[0,&nbsp;-44]</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;});</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;function&nbsp;addMarker(sign)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;icon&nbsp;=&nbsp;createYardSignIcon(sign.label&nbsp;||&nbsp;'Talkie');</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;marker&nbsp;=&nbsp;L.marker([sign.lat,&nbsp;sign.lng],&nbsp;{&nbsp;icon:&nbsp;icon,&nbsp;draggable:&nbsp;false&nbsp;})</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;.addTo(map)</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;.bindPopup(`</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;div&nbsp;style="display:flex;&nbsp;flex-direction:column;&nbsp;gap:4px;&nbsp;background:#fcf9f5;&nbsp;padding:2px&nbsp;0;"&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;strong&nbsp;style="color:#1f2e3a;"&gt;${sign.label&nbsp;||&nbsp;'Talkie&nbsp;Sign'}&lt;/strong&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;span&nbsp;style="font-size:0.8rem;&nbsp;color:#3a4f5e;"&gt;${sign.lat.toFixed(5)},&nbsp;${sign.lng.toFixed(5)}&lt;/span&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;button&nbsp;class="btn&nbsp;btn-danger"&nbsp;style="padding:0.2rem&nbsp;0.6rem;&nbsp;font-size:0.7rem;&nbsp;border-radius:30px;&nbsp;margin-top:4px;&nbsp;background:#c16b6b;&nbsp;color:white;&nbsp;border:none;&nbsp;cursor:pointer;"&nbsp;data-id="${sign.id}"&gt;🗑️&nbsp;Remove&lt;/button&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;&lt;/div&gt;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;`);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;markers.set(sign.id,&nbsp;marker);</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;marker.on('popupopen',&nbsp;function()&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;popupNode&nbsp;=&nbsp;document.querySelector('.leaflet-popup-content');</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(!popupNode)&nbsp;return;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;delBtn&nbsp;=&nbsp;popupNode.querySelector('.btn-danger');</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(delBtn)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;delBtn.addEventListener('click',&nbsp;function(e)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;id&nbsp;=&nbsp;Number(this.getAttribute('data-id'));</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;deleteSignById(id);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;map.closePopup();</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;});</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;});</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;function&nbsp;deleteSignById(id)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;idx&nbsp;=&nbsp;signs.findIndex(s&nbsp;=&gt;&nbsp;s.id&nbsp;===&nbsp;id);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(idx&nbsp;===&nbsp;-1)&nbsp;return;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;marker&nbsp;=&nbsp;markers.get(id);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(marker)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;map.removeLayer(marker);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;markers.delete(id);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;signs.splice(idx,&nbsp;1);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;renderList();</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;saveToLocal();</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;function&nbsp;clearAllSigns()&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(signs.length&nbsp;===&nbsp;0)&nbsp;return;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(!confirm('Remove&nbsp;all&nbsp;Talkie&nbsp;yard&nbsp;signs&nbsp;from&nbsp;map?'))&nbsp;return;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;for&nbsp;(let&nbsp;[id,&nbsp;marker]&nbsp;of&nbsp;markers.entries())&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;map.removeLayer(marker);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;markers.clear();</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;signs&nbsp;=&nbsp;[];</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;renderList();</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;saveToLocal();</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;//&nbsp;----------&nbsp;Local&nbsp;Storage&nbsp;----------</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;function&nbsp;saveToLocal()&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;try&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;data&nbsp;=&nbsp;{&nbsp;signs,&nbsp;nextId&nbsp;};</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;localStorage.setItem('talkieSignsData',&nbsp;JSON.stringify(data));</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}&nbsp;catch&nbsp;(e)&nbsp;{&nbsp;/*&nbsp;ignore&nbsp;*/&nbsp;}</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;function&nbsp;loadFromLocal()&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;try&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;raw&nbsp;=&nbsp;localStorage.getItem('talkieSignsData');</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(!raw)&nbsp;return&nbsp;false;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;data&nbsp;=&nbsp;JSON.parse(raw);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(!data.signs&nbsp;||&nbsp;!Array.isArray(data.signs))&nbsp;return&nbsp;false;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;signs&nbsp;=&nbsp;data.signs;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;nextId&nbsp;=&nbsp;data.nextId&nbsp;||&nbsp;1;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;signs.forEach(s&nbsp;=&gt;&nbsp;addMarker(s));</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;renderList();</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;return&nbsp;true;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}&nbsp;catch&nbsp;(e)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;return&nbsp;false;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;//&nbsp;----------&nbsp;Map&nbsp;click&nbsp;----------</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;map.on('click',&nbsp;function(e)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;{&nbsp;lat,&nbsp;lng&nbsp;}&nbsp;=&nbsp;e.latlng;</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;addSign(lat,&nbsp;lng);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;});</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;//&nbsp;----------&nbsp;Event&nbsp;listeners&nbsp;----------</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;clearAllBtn.addEventListener('click',&nbsp;clearAllSigns);</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;//&nbsp;----------&nbsp;Init&nbsp;----------</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;loaded&nbsp;=&nbsp;loadFromLocal();</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(!loaded)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;demos&nbsp;=&nbsp;[</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;{&nbsp;lat:&nbsp;40.7128,&nbsp;lng:&nbsp;-74.0060&nbsp;},</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;{&nbsp;lat:&nbsp;40.7142,&nbsp;lng:&nbsp;-74.0080&nbsp;},</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;{&nbsp;lat:&nbsp;40.7110,&nbsp;lng:&nbsp;-74.0050&nbsp;},</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;];</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;demos.forEach((pos,&nbsp;i)&nbsp;=&gt;&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;addSign(pos.lat,&nbsp;pos.lng,&nbsp;`Talkie&nbsp;#${i+1}`);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;});</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(demos.length)&nbsp;map.setView([demos[0].lat,&nbsp;demos[0].lng],&nbsp;15);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}&nbsp;else&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;if&nbsp;(signs.length&nbsp;&gt;&nbsp;0)&nbsp;{</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;const&nbsp;group&nbsp;=&nbsp;L.featureGroup(Array.from(markers.values()));</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;map.fitBounds(group.getBounds().pad(0.1));</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;}</span>
+</div><br><div align="left">
+ <span style="font-size:16">&nbsp;setTimeout(()&nbsp;=&gt;&nbsp;map.invalidateSize(),&nbsp;200);</span>
+</div><div align="left">
+ <span style="font-size:16">&nbsp;})();</span>
+</div><br><p></p></body></html>
