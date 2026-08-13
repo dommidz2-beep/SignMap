@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yard Sign Map · Local Keeper</title>
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      background: #f0f4f8;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .header {
+      background: #1e3a5f;
+      color: white;
+      padding: 1rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      z-index: 10;
+    }
+    .header h1 {
+      font-weight: 500;
+      font-size: 1.6rem;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .header h1 span {
+      background: #f9b83a;
+      color: #1e3a5f;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 0.15rem 0.7rem;
+      border-radius: 30px;
+      margin-left: 0.5rem;
+    }
+    .header-actions {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      background: white;
+      border: none;
+      padding: 0.5rem 1.2rem;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #1e3a5f;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .btn-primary {
+      background: #f9b83a;
+      color: #1e3a5f;
+    }
+    .btn-primary:hover {
+      background: #f0a82a;
+      transform: scale(0.97);
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.5);
+      color: white;
+    }
+    .btn-outline:hover {
+      background: rgba(255,255,255,0.15);
+    }
+    .btn-danger {
+      background: #d93c3c;
+      color: white;
+    }
+    .btn-danger:hover {
+      background: #b52b2b;
+    }
+    .main {
+      flex: 1;
+      display: flex;
+      position: relative;
+    }
+    #map {
+      flex: 1;
+      height: 100%;
+      min-height: 400px;
+      background: #dde5ed;
+    }
+    .sidebar {
+      width: 320px;
+      background: white;
+      border-left: 1px solid #d0dbe8;
+      padding: 1.2rem 1rem;
+      overflow-y: auto;
+      box-shadow: -2px 0 12px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+    .sidebar h2 {
+      font-size: 1.2rem;
+      color: #1e3a5f;
+      border-bottom: 2px solid #eaf0f6;
+      padding-bottom: 0.6rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sign-list {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+    .sign-item {
+      background: #f8faff;
+      border-radius: 14px;
+      padding: 0.7rem 1rem;
+      border-left: 6px solid #f9b83a;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: 0.1s;
+    }
+    .sign-item:hover {
+      background: #f0f6ff;
+    }
+    .sign-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .sign-label {
+      font-weight: 600;
+      color: #1e3a5f;
+    }
+    .sign-coords {
+      font-size: 0.7rem;
+      color: #4b6a8b;
+      letter-spacing: 0.3px;
+      background: #eaf0f6;
+      padding: 0.1rem 0.6rem;
+      border-radius: 30px;
+      display: inline-block;
+      width: fit-content;
+    }
+    .sign-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .icon-btn {
+      background: transparent;
+      border: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 0.2rem 0.4rem;
+      border-radius: 30px;
+      transition: 0.1s;
+      color: #4b6a8b;
+    }
+    .icon-btn:hover {
+      background: #dce6f0;
+      color: #1e3a5f;
+    }
+    .icon-btn.delete:hover {
+      color: #c0392b;
+      background: #fde8e8;
+    }
+    .empty-state {
+      color: #6b85a0;
+      text-align: center;
+      padding: 2rem 0.5rem;
+      font-style: italic;
+      background: #f8fbfe;
+      border-radius: 20px;
+      border: 1px dashed #cbd8e8;
+    }
+    .instructions {
+      background: #eef4fa;
+      border-radius: 16px;
+      padding: 0.9rem 1.2rem;
+      color: #1e3a5f;
+      font-size: 0.85rem;
+      border: 1px solid #d5e0ec;
+    }
+    .instructions strong {
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+    .badge {
+      background: #1e3a5f;
+      color: white;
+      border-radius: 40px;
+      padding: 0.05rem 0.7rem;
+      font-size: 0.7rem;
+    }
+    @media (max-width: 720px) {
+      .main { flex-direction: column; }
+      .sidebar {
+        width: 100%;
+        max-height: 45vh;
+        border-left: none;
+        border-top: 1px solid #d0dbe8;
+      }
+      .header { flex-direction: column; align-items: stretch; gap: 0.6rem; }
+      .header-actions { justify-content: flex-start; }
+    }
+    .leaflet-popup-content {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>
+      📍 Yard Signs
+      <span>local</span>
+    </h1>
+    <div class="header-actions">
+      <button class="btn btn-primary" id="clearAllBtn">🗑️ Clear all</button>
+      <button class="btn btn-outline" id="exportBtn">📥 Export</button>
+      <button class="btn btn-outline" id="importBtn">📤 Import</button>
+      <input type="file" id="fileInput" accept=".json" style="display: none" />
+    </div>
+  </div>
+
+  <div class="main">
+    <div id="map"></div>
+    <div class="sidebar">
+      <div>
+        <h2>
+          <span>📋 Signs</span>
+          <span class="badge" id="signCount">0</span>
+        </h2>
+      </div>
+      <div class="instructions">
+        <strong>📍 Click map → add sign</strong>
+        Click anywhere on the map to place a yard sign. 
+        Use popup to delete or click the trash icon in the list.
+      </div>
+      <div class="sign-list" id="signList">
+        <div class="empty-state">No signs placed yet.<br />Click the map to add one.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // ---------- Leaflet Map ----------
+      const map = L.map('map').setView([40.7128, -74.0060], 13); // NYC area
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+      }).addTo(map);
+
+      // ---------- State ----------
+      let signs = [];                // { id, lat, lng, label? }
+      let markers = new Map();       // id -> L.marker
+      let nextId = 1;
+
+      // ---------- DOM refs ----------
+      const signListEl = document.getElementById('signList');
+      const signCountEl = document.getElementById('signCount');
+      const clearAllBtn = document.getElementById('clearAllBtn');
+      const exportBtn = document.getElementById('exportBtn');
+      const importBtn = document.getElementById('importBtn');
+      const fileInput = document.getElementById('fileInput');
+
+      // ---------- Helpers ----------
+      function generateLabel(lat, lng) {
+        // Simple label: "Sign #n" or use lat/lng short
+        return `Sign ${nextId}`;
+      }
+
+      // Render the sidebar list
+      function renderList() {
+        if (signs.length === 0) {
+          signListEl.innerHTML = `<div class="empty-state">No signs placed yet.<br />Click the map to add one.</div>`;
+          signCountEl.textContent = '0';
+          return;
+        }
+
+        let html = '';
+        signs.forEach(s => {
+          const coords = `${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}`;
+          html += `
+            <div class="sign-item" data-id="${s.id}">
+              <div class="sign-info">
+                <span class="sign-label">${s.label || 'Yard Sign'}</span>
+                <span class="sign-coords">📍 ${coords}</span>
+              </div>
+              <div class="sign-actions">
+                <button class="icon-btn delete" data-id="${s.id}" title="Remove sign">✕</button>
+              </div>
+            </div>
+          `;
+        });
+        signListEl.innerHTML = html;
+        signCountEl.textContent = signs.length;
+
+        // Attach delete events to list buttons
+        document.querySelectorAll('.sign-item .delete').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = Number(btn.getAttribute('data-id'));
+            deleteSignById(id);
+          });
+        });
+      }
+
+      // ---------- CRUD ----------
+      function addSign(lat, lng, label) {
+        const id = nextId++;
+        const newSign = { id, lat, lng, label: label || generateLabel(lat, lng) };
+        signs.push(newSign);
+        addMarker(newSign);
+        renderList();
+        saveToLocal();
+        return newSign;
+      }
+
+      function addMarker(sign) {
+        const marker = L.marker([sign.lat, sign.lng], { draggable: false })
+          .addTo(map)
+          .bindPopup(`
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <strong>${sign.label || 'Yard Sign'}</strong>
+              <span style="font-size:0.8rem; color:#2c3e50;">${sign.lat.toFixed(5)}, ${sign.lng.toFixed(5)}</span>
+              <button class="btn btn-danger" style="padding:0.2rem 0.6rem; font-size:0.7rem; border-radius:30px; margin-top:4px;" data-id="${sign.id}">🗑️ Remove</button>
+            </div>
+          `);
+        markers.set(sign.id, marker);
+
+        // Attach popup delete event (delegation doesn't work for dynamically created popup content)
+        marker.on('popupopen', function() {
+          const popupNode = document.querySelector('.leaflet-popup-content');
+          if (!popupNode) return;
+          const delBtn = popupNode.querySelector('.btn-danger');
+          if (delBtn) {
+            delBtn.addEventListener('click', function(e) {
+              const id = Number(this.getAttribute('data-id'));
+              deleteSignById(id);
+              map.closePopup();
+            });
+          }
+        });
+      }
+
+      function deleteSignById(id) {
+        const idx = signs.findIndex(s => s.id === id);
+        if (idx === -1) return;
+        // remove marker
+        const marker = markers.get(id);
+        if (marker) {
+          map.removeLayer(marker);
+          markers.delete(id);
+        }
+        signs.splice(idx, 1);
+        renderList();
+        saveToLocal();
+      }
+
+      function clearAllSigns() {
+        if (signs.length === 0) return;
+        if (!confirm('Remove all yard signs from map?')) return;
+        // remove all markers
+        for (let [id, marker] of markers.entries()) {
+          map.removeLayer(marker);
+        }
+        markers.clear();
+        signs = [];
+        renderList();
+        saveToLocal();
+      }
+
+      // ---------- Local Storage ----------
+      function saveToLocal() {
+        try {
+          const data = { signs, nextId };
+          localStorage.setItem('yardSignsData', JSON.stringify(data));
+        } catch (e) { /* ignore */ }
+      }
+
+      function loadFromLocal() {
+        try {
+          const raw = localStorage.getItem('yardSignsData');
+          if (!raw) return false;
+          const data = JSON.parse(raw);
+          if (!data.signs || !Array.isArray(data.signs)) return false;
+          // restore signs
+          signs = data.signs;
+          nextId = data.nextId || 1;
+          // re-create markers
+          signs.forEach(s => addMarker(s));
+          renderList();
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      // ---------- Export / Import ----------
+      function exportData() {
+        const data = { signs, nextId };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `yard_signs_${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      function importData(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = JSON.parse(e.target.result);
+            if (!data.signs || !Array.isArray(data.signs)) {
+              alert('Invalid file: missing "signs" array.');
+              return;
+            }
+            // clear current
+            for (let [id, marker] of markers.entries()) {
+              map.removeLayer(marker);
+            }
+            markers.clear();
+            signs = data.signs;
+            nextId = data.nextId || 1;
+            signs.forEach(s => addMarker(s));
+            renderList();
+            saveToLocal();
+            alert(`Imported ${signs.length} signs.`);
+          } catch (err) {
+            alert('Failed to parse file. Please provide a valid JSON export.');
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      // ---------- Map click: add sign ----------
+      map.on('click', function(e) {
+        const { lat, lng } = e.latlng;
+        addSign(lat, lng);
+      });
+
+      // ---------- Event listeners ----------
+      clearAllBtn.addEventListener('click', clearAllSigns);
+
+      exportBtn.addEventListener('click', exportData);
+
+      importBtn.addEventListener('click', () => {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+          importData(this.files[0]);
+        }
+        this.value = ''; // reset
+      });
+
+      // ---------- Init ----------
+      // Try loading from local storage, otherwise set default demo signs
+      const loaded = loadFromLocal();
+      if (!loaded) {
+        // Seed with a couple of example signs (NYC area)
+        const demos = [
+          { lat: 40.7128, lng: -74.0060 },
+          { lat: 40.7142, lng: -74.0080 },
+          { lat: 40.7110, lng: -74.0050 },
+        ];
+        demos.forEach((pos, i) => {
+          addSign(pos.lat, pos.lng, `Yard Sign ${i+1}`);
+        });
+        // center map to first demo
+        if (demos.length) map.setView([demos[0].lat, demos[0].lng], 15);
+      } else {
+        // if loaded, fit bounds to markers if any
+        if (signs.length > 0) {
+          const group = L.featureGroup(Array.from(markers.values()));
+          map.fitBounds(group.getBounds().pad(0.1));
+        }
+      }
+
+      // small fix: re-render if map resizes
+      setTimeout(() => map.invalidateSize(), 200);
+    })();
+  </script>
+</body>
+</html>
